@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement()) 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  email String @unique
+  name String?
+  password String
+  breakInterval Int? @default(50) @map("break_interval")
+  intervalsCount Int? @default(10) @map("interval_count")
+  workInterval Int? @default(7) @map("work_interval")
+
+  tasks Task[]
+  timeBlocks TimeBlock[]
+  pomodoroSessions PomodoroSession[]
+}
+
+model Task {
+  id Int @id @default(autoincrement()) 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at") 
+
+  name String
+  isCompleted Boolean @default(false) @map("is_completed")
+  priority Priority?
+
+  userId Int @map("user_id")
+  user User @relation(fields: [userId], references: [id])
+}
+
+model TimeBlock {
+  id Int @id @default(autoincrement()) 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  name String
+  color String
+  duration Int
+  order Int @default(1)
+
+  userId Int @map("user_id")
+  user User @relation(fields: [userId], references: [id])
+}
+
+model PomodoroSession {
+  id Int @id @default(autoincrement()) 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at") 
+
+  isCompleted Boolean @default(false) @map("is_completed")
+
+  userId Int @map("user_id")
+  user User @relation(fields: [userId], references: [id])
+
+  pomodoroRounds PomodoroRound[]
+}
+
+model PomodoroRound {
+  id Int @id @default(autoincrement()) 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  totalSeconds Int @map("total_seconds")
+  isCompleted Boolean @default(false)
+
+  pomodoroSessionId Int @map("pomodoro_session_id")
+  pomodoroSession PomodoroSession @relation(fields: [pomodoroSessionId], references: [id], onDelete: Cascade)
+}
+
+enum Priority {
+  low
+  medium
+  high
+}
